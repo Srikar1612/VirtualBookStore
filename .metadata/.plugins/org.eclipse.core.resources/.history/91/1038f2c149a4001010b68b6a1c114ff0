@@ -1,0 +1,5 @@
+package com.virtualbookstore.bookstoreapp.Entities;
+
+public class Payment {
+
+}

@@ -1,0 +1,142 @@
+package com.virtualbookstore.bookstoreapp.Services;
+
+import java.util.List;
+
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.virtualbookstore.bookstoreapp.DTO.PasswordUpdateDTO;
+import com.virtualbookstore.bookstoreapp.DTO.ProfileUpdateDTO;
+import com.virtualbookstore.bookstoreapp.DTO.RegistrationDTO;
+import com.virtualbookstore.bookstoreapp.DTO.UpdateRoleDTO;
+import com.virtualbookstore.bookstoreapp.Entities.Order;
+import com.virtualbookstore.bookstoreapp.Entities.User;
+import com.virtualbookstore.bookstoreapp.enums.Role;
+import com.virtualbookstore.bookstoreapp.repo.CartItemRepository;
+import com.virtualbookstore.bookstoreapp.repo.OrderRepository;
+import com.virtualbookstore.bookstoreapp.repo.UserRepository;
+
+@Service
+public class UserService {
+	
+	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final OrderRepository orderRepository;
+	private final CartItemRepository cartItemRepository;
+	
+	public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, OrderRepository orderRepository, CartItemRepository cartItemRepository) {
+		
+		this.userRepository=userRepository;
+		this.passwordEncoder=passwordEncoder;
+		this.orderRepository=orderRepository;
+		this.cartItemRepository=cartItemRepository;
+		
+	}
+
+	@Transactional
+	public User register(RegistrationDTO userDto) {
+		
+		if(userRepository.findByEmail(userDto.getEmail()).isPresent())
+			throw new RuntimeException("User is already registered");
+		
+		String name = userDto.getName();
+		String email = userDto.getEmail();
+		String cPassword = userDto.getPassword();
+		String hPassword = passwordEncoder.encode(cPassword);
+		
+		User user=User.builder()
+				.name(name)
+				.email(email)
+				.password(hPassword)
+				.role(Role.ROLE_USER)
+				.build();
+		
+		return userRepository.save(user);
+		
+	}
+
+	public User getUser(Long userId) {
+		
+		return userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+	}
+
+	@Transactional
+	public User updateUserProfile(Long userId, ProfileUpdateDTO profileUpdateDTO) {
+		
+		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+		
+		if(user.getId()!=userId)
+			throw new AuthorizationDeniedException("This id doesnot belong to you");
+		
+		user.setEmail(profileUpdateDTO.getEmail());
+		user.setName(profileUpdateDTO.getName());
+		
+		return userRepository.save(user);
+		
+	}
+
+	@Transactional
+	public User updateUserPassword(Long userId, PasswordUpdateDTO passwordUpdateDTO) {
+		
+		User user = userRepository.findById(userId).orElseThrow(()-> new RuntimeException("Use not found"));
+		String oldPassword=passwordUpdateDTO.getOldPassword();
+		String newPassword=passwordUpdateDTO.getNewPassword();
+		String cPassword=user.getPassword();
+		
+		if(!passwordEncoder.matches(cPassword, oldPassword)) {
+			
+			throw new RuntimeException("Old Password does not match");
+			
+		}
+		
+		if(newPassword == null || newPassword.length()<8)
+			throw new IllegalArgumentException("Password should be atleadt 8 characters long");
+		
+		String hPassword=passwordEncoder.encode(newPassword);
+		user.setPassword(hPassword);
+		
+		return userRepository.save(user);
+		
+	}
+
+	public User findByEmail(String email) {
+		
+		return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Email not found"));
+		
+	}
+
+	@Transactional
+	public void deleteUserProfile(Long userId) {
+		
+		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+		
+		List<Order> orders = orderRepository.findByUserId(userId);
+		
+		for (Order order : orders) {
+
+			order.setUser(null);
+			
+		}
+		
+		cartItemRepository.deleteByUserId(userId);
+		userRepository.delete(user);
+		
+	}
+
+	@Transactional
+	public User updateUserRole(UpdateRoleDTO updateRoleDTO) {
+		
+		Long userId = updateRoleDTO.getUserId();
+		
+		User user = userRepository.findById(userId).orElseThrow(()-> new RuntimeException("User not found"));
+		
+		user.setRole(Role.ROLE_ADMIN);
+		
+		return userRepository.save(user);
+	}
+	
+	
+	
+}

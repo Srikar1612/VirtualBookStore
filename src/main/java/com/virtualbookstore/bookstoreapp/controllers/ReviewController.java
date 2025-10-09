@@ -1,0 +1,90 @@
+package com.virtualbookstore.bookstoreapp.controllers;
+
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.virtualbookstore.bookstoreapp.Entities.Review;
+import com.virtualbookstore.bookstoreapp.Services.ReviewService;
+
+@RestController
+@RequestMapping("/api/book/{bookId}/review")
+public class ReviewController {
+	
+	private final ReviewService reviewService;
+	
+	public ReviewController(ReviewService reviewService) {
+		
+		this.reviewService=reviewService;
+		
+	}
+	
+	@GetMapping
+	public ResponseEntity<List<Review>> getAllReviews(
+			@PathVariable Long bookId
+			) {
+		try {
+			List<Review> reviews=reviewService.retriveAllReviews(bookId);
+			if(!reviews.isEmpty())
+				return new ResponseEntity<>(reviews, HttpStatus.OK);
+			else {
+				
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+				
+			}
+		} catch (RuntimeException e) {
+			
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			
+		}
+		
+		
+	}
+	
+	@GetMapping("/{reviewId}")
+	public ResponseEntity<Review> getReview(
+			@PathVariable Long bookId,
+			@PathVariable Long reviewId
+			) {
+		
+		try {
+			
+			Review review=reviewService.retriveReview(bookId, reviewId);
+			return new ResponseEntity<>(review, HttpStatus.OK);
+			
+		} catch (RuntimeException e) {
+			
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			
+		}
+		
+	}
+	
+	@PostMapping
+	public ResponseEntity<Review> postReview(
+			@RequestBody Review review
+			
+			) {
+		
+		
+		try {
+			
+			Review createdReview=reviewService.createReview(review);
+			return new ResponseEntity<>(createdReview, HttpStatus.OK);
+			
+		} catch (Exception e) {
+			
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+		}
+		
+	}
+	
+}

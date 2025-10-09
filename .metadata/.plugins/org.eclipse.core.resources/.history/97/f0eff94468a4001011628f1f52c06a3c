@@ -1,0 +1,49 @@
+//package com.virtualbookstore.bookstoreapp.controllers;
+//
+//import org.springframework.http.HttpStatus;
+//import org.springframework.http.ResponseEntity;
+//import org.springframework.web.bind.annotation.PostMapping;
+//import org.springframework.web.bind.annotation.RequestBody;
+//import org.springframework.web.bind.annotation.RequestMapping;
+//import org.springframework.web.bind.annotation.RestController;
+//
+//import com.virtualbookstore.bookstoreapp.DTO.PaymentDTO;
+//import com.virtualbookstore.bookstoreapp.Services.PaymentService;
+//
+//import jakarta.validation.Valid;
+//
+//@RestController
+//@RequestMapping("/api/payment")
+//public class PaymentController {
+//	
+//	private final PaymentService paymentService;
+//	
+//	public PaymentController(PaymentService paymentService) {
+//		
+//		this.paymentService=paymentService;
+//		
+//	}
+//	
+//	@PostMapping("/proceesing")
+//	public ResponseEntity<String> processPayment(
+//			@RequestBody @Valid PaymentDTO paymentDTO
+//			){
+//		
+//		try {
+//			
+//			String result=paymentService.process(paymentDTO);
+//			return new ResponseEntity<>(result, HttpStatus.OK);
+//			
+//		} catch (RuntimeException e) {
+//			
+//			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+//			
+//		} catch (Exception e) {
+//			
+//			return new ResponseEntity<>("An unexpected error occured during payment", HttpStatus.INTERNAL_SERVER_ERROR);
+//			
+//		}
+//		
+//	}
+//	
+//}

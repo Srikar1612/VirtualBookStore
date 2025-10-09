@@ -1,0 +1,17 @@
+package com.virtualbookstore.bookstoreapp.Services;
+
+import org.springframework.stereotype.Service;
+
+import com.virtualbookstore.bookstoreapp.DTO.PaymentDTO;
+
+import jakarta.validation.Valid;
+
+@Service
+public class PaymentService {
+
+	public String process(@Valid PaymentDTO paymentDTO) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

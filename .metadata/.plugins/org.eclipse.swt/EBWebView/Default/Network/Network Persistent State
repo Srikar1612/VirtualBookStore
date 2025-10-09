@@ -1,0 +1,1 @@
+{"net":{"http_server_properties":{"servers":[{"anonymization":["HAAAABYAAABodHRwczovL3JmYy1lZGl0b3Iub3JnAAA=",false,0],"network_stats":{"srtt":51236},"server":"https://www.rfc-editor.org"}],"supports_quic":{"address":"2401:4900:4e24:d624:8010:e8a1:7fc:ed72","used_quic":true},"version":5},"network_qualities":{"CAISABiAgICA+P////8B":"4G","CAYSABiAgICA+P////8B":"Offline"}}}

@@ -1,0 +1,58 @@
+package com.virtualbookstore.bookstoreapp.Services;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.virtualbookstore.bookstoreapp.DTO.LoginDTO;
+import com.virtualbookstore.bookstoreapp.DTO.RegistrationDTO;
+import com.virtualbookstore.bookstoreapp.Entities.User;
+import com.virtualbookstore.bookstoreapp.enums.Role;
+import com.virtualbookstore.bookstoreapp.repo.UserRepository;
+
+@Service
+public class UserService {
+	
+	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
+	
+	public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+		
+		this.userRepository=userRepository;
+		this.passwordEncoder=passwordEncoder;
+		
+	}
+
+	@Transactional
+	public User register(RegistrationDTO userDto) {
+		
+		if(userRepository.findByEmail(userDto.getEmail()).isPresent())
+			throw new RuntimeException("User is already registered");
+		
+		String name = userDto.getName();
+		String email = userDto.getEmail();
+		String cPassword = userDto.getPassword();
+		String hPassword = passwordEncoder.encode(cPassword);
+		
+		User user=User.builder()
+				.name(name)
+				.email(email)
+				.password(hPassword)
+				.role(Role.ROLE_USER)
+				.build();
+		
+		return userRepository.save(user);
+		
+	}
+
+	public User Login(LoginDTO userDto) {
+		
+		String email = userDto.getEmail();
+		User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Email not found"));
+		
+		
+	}
+	
+	
+	
+}

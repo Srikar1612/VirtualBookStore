@@ -1,0 +1,6 @@
+package com.virtualbookstore.bookstoreapp.enums;
+
+public enum Role {
+    User,
+    Admin
+}

@@ -1,0 +1,101 @@
+package com.virtualbookstore.bookstoreapp.Services;
+
+import java.time.LocalDateTime;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.virtualbookstore.bookstoreapp.Entities.Book;
+import com.virtualbookstore.bookstoreapp.Entities.Order;
+import com.virtualbookstore.bookstoreapp.Entities.OrderItem;
+import com.virtualbookstore.bookstoreapp.Entities.Payment;
+import com.virtualbookstore.bookstoreapp.Entities.User;
+import com.virtualbookstore.bookstoreapp.enums.OrderStatus;
+import com.virtualbookstore.bookstoreapp.enums.PaymentStatus;
+import com.virtualbookstore.bookstoreapp.repo.BookRepository;
+import com.virtualbookstore.bookstoreapp.repo.OrderRepository;
+import com.virtualbookstore.bookstoreapp.repo.PaymentRepository;
+import com.virtualbookstore.bookstoreapp.repo.UserRepository;
+
+@Service
+public class PaymentService {
+	
+	private final BookRepository bookRepository;
+	private final BookService bookService;
+	private final PaymentRepository paymentRepository;
+	private final OrderRepository orderRepository;
+	
+	public PaymentService(BookRepository bookRepository, BookService bookService, UserRepository userRepository, PaymentRepository paymentRepository, OrderRepository orderRepository) {
+		
+		this.paymentRepository=paymentRepository;
+		this.bookRepository=bookRepository;
+		this.bookService=bookService;
+		this.orderRepository=orderRepository;
+		
+	}
+
+	@Transactional
+	public Payment process(Order savedOrder, User user, double totalPrice, String method, String transactionId) {
+		
+		if(savedOrder.getStatus()!=OrderStatus.Placed) {
+			throw new RuntimeException("Order must be in 'Placed' status to be paid.");
+		}
+		
+		Boolean paymentBoolean = mockPaymentGateway(totalPrice);
+		
+		if(!paymentBoolean) {
+			
+			Payment failedPayment = Payment.builder()
+					.amount(totalPrice)
+					.paymentDate(LocalDateTime.now())
+					.paymentMethod(method)
+					.paymentStatus(PaymentStatus.FAILED)
+					.user(user)
+					.transactionId(transactionId)
+					.build();
+			
+			paymentRepository.save(failedPayment);
+			
+			throw new RuntimeException("Payment failed");
+			
+		}
+
+		
+		for(OrderItem item : savedOrder.getOrderItem()) {
+		    Long bookId = item.getBook().getId();
+		    int quantity = item.getQuantity();
+		    Book book = bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book not found for stock update"));
+		    
+		    if (book.getStock() < quantity) {
+		        
+		        throw new RuntimeException("Insufficient stock for Book with Id: " + bookId + " during final payment.");
+		    }
+		    
+		    bookService.updateBookStock(bookId, book.getStock() - quantity);
+		}
+		
+		
+		savedOrder.setStatus(OrderStatus.Processing);
+		orderRepository.save(savedOrder);
+		
+		Payment successfulPayment = Payment.builder()
+				.amount(totalPrice)
+				.paymentDate(LocalDateTime.now())
+				.paymentMethod(method)
+				.paymentStatus(PaymentStatus.COMPLETED)
+				.user(user)
+				.transactionId(transactionId)
+				.build();
+		
+		return paymentRepository.save(successfulPayment);
+	}
+
+	private Boolean mockPaymentGateway(double amount) {
+		
+		if(amount>0)
+			return true;
+		return false;
+		
+	}
+
+}

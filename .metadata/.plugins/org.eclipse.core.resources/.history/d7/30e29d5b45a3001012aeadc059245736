@@ -1,0 +1,12 @@
+package com.virtualbookstore.bookstoreapp.Services;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class JWTService {
+
+	private static final SecretKey SECRET_KEY;
+	
+}

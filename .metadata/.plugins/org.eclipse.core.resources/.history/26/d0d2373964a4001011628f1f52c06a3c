@@ -1,0 +1,87 @@
+package com.virtualbookstore.bookstoreapp.Services;
+
+import java.time.LocalDateTime;
+
+import org.springframework.stereotype.Service;
+
+import com.virtualbookstore.bookstoreapp.DTO.PaymentDTO;
+import com.virtualbookstore.bookstoreapp.Entities.Book;
+import com.virtualbookstore.bookstoreapp.Entities.Payment;
+import com.virtualbookstore.bookstoreapp.Entities.User;
+import com.virtualbookstore.bookstoreapp.enums.PaymentStatus;
+import com.virtualbookstore.bookstoreapp.repo.BookRepository;
+import com.virtualbookstore.bookstoreapp.repo.PaymentRepository;
+import com.virtualbookstore.bookstoreapp.repo.UserRepository;
+
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+
+@Service
+public class PaymentService {
+	
+	private final BookRepository bookRepository;
+	private final BookService bookService;
+	private final UserRepository userRepository;
+	private final PaymentRepository paymentRepository;
+	
+	public PaymentService(BookRepository bookRepository, BookService bookService, UserRepository userRepository, PaymentRepository paymentRepository) {
+		
+		this.paymentRepository=paymentRepository;
+		this.bookRepository=bookRepository;
+		this.bookService=bookService;
+		this.userRepository=userRepository;
+		
+	}
+
+	@Transactional
+	public String process(@Valid PaymentDTO paymentDTO) {
+		
+		Long bookId = paymentDTO.getBookId();
+		Long userId=paymentDTO.getUserId();
+		int quantity = paymentDTO.getQuantity();
+		Book book = bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("cannot find book"));
+		double amount = paymentDTO.getAmount();
+		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+		Boolean paymentBoolean = mockPaymentGateway(amount);
+		String method=paymentDTO.getMethod();
+		String transactionId=paymentDTO.getTransactionId();
+		
+		if(!paymentBoolean) {
+			
+			Payment payment = Payment.builder()
+					.amount(amount)
+					.paymentDate(LocalDateTime.now())
+					.paymentMethod(method)
+					.paymentStatus(PaymentStatus.FAILED)
+					.user(user)
+					.transactionId(transactionId)
+					.build();
+			
+			paymentRepository.save(payment);
+			
+			new RuntimeException("Payment failed");
+			
+		}
+		
+		bookService.updateBookStock(bookId, book.getStock()-quantity);
+		
+		Payment payment = Payment.builder()
+				.amount(amount)
+				.paymentDate(LocalDateTime.now())
+				.paymentMethod(method)
+				.paymentStatus(PaymentStatus.COMPLETED)
+				.user(user)
+				.transactionId(transactionId)
+				.build();
+		
+	}
+
+	private Boolean mockPaymentGateway(double amount) {
+		
+		if(amount>0)
+			return true;
+		return false;
+		
+	}
+
+}

@@ -1,0 +1,94 @@
+package com.virtualbookstore.bookstoreapp.controllers;
+
+import com.virtualbookstore.bookstoreapp.Entities.Book;
+import com.virtualbookstore.bookstoreapp.Services.BookService;
+import com.virtualbookstore.bookstoreapp.repo.BookRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/books")
+public class BookController {
+
+    private final BookService bookService;
+
+    public BookController(BookService bookService, BookRepository bookRepository) {
+        this.bookService = bookService;
+    }
+
+    @GetMapping("/browse")
+    public ResponseEntity<List<Book>> browseBooks(
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false, defaultValue = "false") boolean inStock,
+            @RequestParam(required = false, defaultValue = "title") String sortBy,
+            @RequestParam(required = false) String searchQuery
+
+    ) {
+        List<Book> books= bookService.browseBooks(genre, author, minPrice, maxPrice, inStock, sortBy, searchQuery);
+        if(!books.isEmpty()) {
+        	return new ResponseEntity<>(books, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);    }
+    
+    @GetMapping("/book/{bookId}")
+    public ResponseEntity<Book> getBook(@PathVariable Long bookId) {
+    	
+        Book book=bookService.getBook(bookId);
+        
+        if(book != null) {
+        	
+        	return new ResponseEntity<>(book, HttpStatus.OK);
+        	
+        }
+        
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    
+    @PostMapping("/add")
+    public ResponseEntity<Book> addBook(
+    		@RequestBody Book book
+    		){
+    	
+    		try {
+			
+				Book book1 = bookService.addNewBook(book);
+				
+					return new ResponseEntity<>(book1, HttpStatus.OK);
+				
+			}catch(IllegalArgumentException e) {
+				
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				
+			} catch (RuntimeException re) {
+				
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+				
+			}
+		
+	}
+    
+    @PutMapping("/edit/{bookId}")
+    public ResponseEntity<Book> editBook(
+    		@PathVariable Long bookId,
+    		@RequestBody Book updatedBook
+    		) {
+    	
+    	try {
+    		
+    		Book newBook = bookService.updateBook(bookId, updatedBook);
+    		return new ResponseEntity<>(newBook, HttpStatus.OK);
+    		
+    	} catch (Exception e) {
+			// TODO: handle exception
+		}
+    	
+    }
+    	
+}
+

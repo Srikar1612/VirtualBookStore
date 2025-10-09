@@ -1,0 +1,29 @@
+package com.virtualbookstore.bookstoreapp.Services;
+
+import java.security.PrivateKey;
+
+import org.springframework.stereotype.Service;
+
+import com.virtualbookstore.bookstoreapp.Entities.User;
+import com.virtualbookstore.bookstoreapp.repo.UserRepository;
+
+@Service
+public class UserService {
+	
+	private final UserRepository userRepository;
+	
+	public UserService(UserRepository userRepository) {
+		
+		this.userRepository=userRepository;
+		
+	}
+
+	public void register(User user) {
+		
+		
+		
+	}
+	
+	
+	
+}

@@ -1,0 +1,12 @@
+package com.virtualbookstore.bookstoreapp.repo;
+
+import org.springframework.stereotype.Repository;
+
+import com.virtualbookstore.bookstoreapp.Entities.Payment;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+@Repository
+public class PaymentRepository extends JpaRepository<Payment, Long>{
+
+}

@@ -1,0 +1,130 @@
+package com.virtualbookstore.bookstoreapp.controllers;
+
+import java.nio.file.AccessDeniedException;
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.virtualbookstore.bookstoreapp.DTO.OrderDTO;
+import com.virtualbookstore.bookstoreapp.Entities.Order;
+import com.virtualbookstore.bookstoreapp.Services.OrderService;
+import com.virtualbookstore.bookstoreapp.Util.GetIdUtility;
+
+@RestController
+@RequestMapping("/api/user/{userId}/order")
+public class OrderController {
+	
+	private final OrderService orderService;
+	private final GetIdUtility getIdUtility;
+	
+	public OrderController(OrderService orderService, GetIdUtility getIdUtility) {
+		
+		this.orderService=orderService;
+		this.getIdUtility = getIdUtility;
+		
+	}
+	
+	@PostMapping("/fromcart")
+	public ResponseEntity<Order> orderFromCart(
+			@RequestBody OrderDTO orderDTO
+			) {
+		try {
+			
+			Long userId = getIdUtility.getCurrentUserId();
+			Order order= orderService.createOrderFromCart(userId, orderDTO);
+			return new ResponseEntity<>(order, HttpStatus.CREATED);
+		} catch (RuntimeException e) {
+			
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+		
+	}
+	
+	@PostMapping
+	public ResponseEntity<?> orderItem(
+			@RequestParam Long bookId,
+			@RequestParam int quantity,
+			@RequestBody OrderDTO orderDTO
+			) {
+		
+		try {
+			
+			Long userId = getIdUtility.getCurrentUserId();
+			Order order = orderService.placeOrder(bookId, quantity, orderDTO);
+			
+			return new ResponseEntity<>(order, HttpStatus.OK);
+			
+		} catch (Exception e) {
+			
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+			
+		}
+		
+	}
+	
+	@GetMapping("/viewall")
+	public ResponseEntity<List<Order>> viewAllOrders(
+			@PathVariable Long userId
+			) {
+		
+		List<Order> orders=orderService.getAllOrders(userId);
+		
+		if(orders.isEmpty())
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		
+		return new ResponseEntity<>(orders, HttpStatus.OK);
+		
+	}
+	
+	@GetMapping("/view/{orderId}")
+	public ResponseEntity<Order> viewOrder(
+			@PathVariable Long userId,
+			@PathVariable Long orderId
+			) {
+		
+		try {
+			
+			Order order=orderService.getOrder(orderId, userId);
+			return new ResponseEntity<>(order, HttpStatus.OK);
+			
+		} catch (Exception e) {
+			
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			
+		}
+		
+	}
+	
+	@PatchMapping("/cancel/{orderId}")
+	public ResponseEntity<Order> cancel(
+			@PathVariable Long userId,
+			@PathVariable Long orderId
+			) {
+		
+		try {
+			
+			Order order= orderService.cancelOrder(orderId, userId);
+			return new ResponseEntity<>(order, HttpStatus.OK);
+			
+		} catch (AccessDeniedException e) {
+			
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+		} catch (RuntimeException e) {
+			
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			
+		}
+		
+	}
+
+}

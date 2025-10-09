@@ -1,0 +1,22 @@
+package com.virtualbookstore.bookstoreapp.Services;
+
+public class Snippet {
+	@PostMapping("/auth/register")
+		public ResponseEntity<User> userRegistraion(
+				@RequestBody RegistrationDTO userDto
+				) {
+			
+			try {
+				
+				User newUser = userService.register(userDto);
+				return new ResponseEntity<>(newUser, HttpStatus.OK);
+				
+			} catch (RuntimeException e) {
+				
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+				
+			}
+			
+		}
+}
+

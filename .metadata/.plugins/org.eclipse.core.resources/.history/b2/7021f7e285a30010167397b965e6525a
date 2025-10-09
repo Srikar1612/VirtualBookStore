@@ -1,0 +1,5 @@
+package com.virtualbookstore.bookstoreapp.DTO;
+
+public class AuthenticationResponseDTO {
+
+}

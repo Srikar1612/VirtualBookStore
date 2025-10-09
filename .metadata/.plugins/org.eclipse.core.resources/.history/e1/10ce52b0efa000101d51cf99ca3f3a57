@@ -1,0 +1,94 @@
+package com.virtualbookstore.bookstoreapp.controllers;
+
+import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.virtualbookstore.bookstoreapp.Entities.Order;
+import com.virtualbookstore.bookstoreapp.Services.OrderService;
+
+@RestController
+@RequestMapping("/api/user/{userId}/order")
+public class OrderController {
+	
+	private final OrderService orderService;
+	
+	public OrderController(OrderService orderService) {
+		
+		this.orderService=orderService;
+		
+	}
+	
+	@PostMapping("/fromcart")
+	public ResponseEntity<Order> orderFromCart(
+			@PathVariable Long userId
+			) {
+		try {
+			Order order= orderService.createOrderFromCart(userId);
+			return new ResponseEntity<>(order, HttpStatus.CREATED);
+		} catch (RuntimeException e) {
+			
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+		
+	}
+	
+	@GetMapping("/viewall")
+	public ResponseEntity<List<Order>> viewAllOrders(
+			@PathVariable Long userId
+			) {
+		
+		List<Order> orders=orderService.getAllOrders(userId);
+		
+		if(orders.isEmpty())
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		
+		return new ResponseEntity<>(orders, HttpStatus.OK);
+		
+	}
+	
+	@GetMapping("/view/{orderId}")
+	public ResponseEntity<Order> viewOrder(
+			@PathVariable Long userId,
+			@PathVariable Long orderId
+			) {
+		
+		try {
+			
+			Order order=orderService.getOrder(orderId, userId);
+			return new ResponseEntity<>(order, HttpStatus.OK);
+			
+		} catch (Exception e) {
+			
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			
+		}
+		
+	}
+	
+	@PatchMapping("/cancel/{orderId}")
+	public ResponseEntity<Void> cancel(
+			@PathVariable Long userId,
+			@PathVariable Long orderId
+			) {
+		
+		try {
+			
+			Order order= orderService.cancelOrder(orderId, userId);
+			return new ResponseEntity<>(order, HttpStatus.OK);
+			
+		} catch (RuntimeException e) {
+			
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			
+		}
+		
+	}
+
+}

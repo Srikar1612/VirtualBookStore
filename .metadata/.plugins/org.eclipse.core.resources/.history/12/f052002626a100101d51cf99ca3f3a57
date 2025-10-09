@@ -1,0 +1,10 @@
+package com.virtualbookstore.bookstoreapp.Services;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+	
+	
+	
+}

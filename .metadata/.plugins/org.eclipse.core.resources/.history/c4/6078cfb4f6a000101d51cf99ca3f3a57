@@ -1,0 +1,22 @@
+package com.virtualbookstore.bookstoreapp.repo;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
+
+import com.virtualbookstore.bookstoreapp.Entities.CartItem;
+import com.virtualbookstore.bookstoreapp.Entities.User;
+
+@Repository
+public interface CartItemRepository extends JpaRepository<CartItem, Long>, JpaSpecificationExecutor<CartItem> {
+
+	List<CartItem> findByUserId(Long userId);
+
+	Optional<CartItem> findByUserIdAndBookId(Long userId, Long bookId);
+
+	Optional<CartItem> findByIdAndUserID(Long cartItemId, Long userId);
+
+}

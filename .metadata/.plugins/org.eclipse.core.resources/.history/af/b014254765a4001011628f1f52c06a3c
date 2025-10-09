@@ -1,0 +1,5 @@
+package com.virtualbookstore.bookstoreapp.repo;
+
+public interface PaymentRepository {
+
+}

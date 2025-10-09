@@ -1,0 +1,49 @@
+package com.virtualbookstore.bookstoreapp.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.virtualbookstore.bookstoreapp.Services.UserDetailsServiceImpl;
+
+@Configuration
+public class SecurityConfig {
+	
+	private final UserDetailsServiceImpl userDetailsServiceImpl;
+	
+	public SecurityConfig(UserDetailsServiceImpl userDetailsServiceImpl) {
+		
+		this.userDetailsServiceImpl=userDetailsServiceImpl;
+		
+	}
+
+    @Bean
+    PasswordEncoder passwordEncoder() {
+		
+		return new BCryptPasswordEncoder();
+		
+	}
+
+    @Bean
+    AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+		
+		return authenticationConfiguration.getAuthenticationManager();
+		
+	}
+
+    @Bean
+    DaoAuthenticationProvider authenticationProvider() {
+		
+		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+		authProvider.setUserDetailsService(userDetailsServiceImpl);
+		authProvider.setPasswordEncoder(passwordEncoder());
+		return authProvider;
+		
+	}
+	
+
+}

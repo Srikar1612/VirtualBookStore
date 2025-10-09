@@ -1,0 +1,218 @@
+package com.virtualbookstore.bookstoreapp.Services;
+
+import java.nio.file.AccessDeniedException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.virtualbookstore.bookstoreapp.DTO.OrderDTO;
+import com.virtualbookstore.bookstoreapp.Entities.Book;
+import com.virtualbookstore.bookstoreapp.Entities.CartItem;
+import com.virtualbookstore.bookstoreapp.Entities.Order;
+import com.virtualbookstore.bookstoreapp.Entities.OrderItem;
+import com.virtualbookstore.bookstoreapp.Entities.User;
+import com.virtualbookstore.bookstoreapp.enums.OrderStatus;
+import com.virtualbookstore.bookstoreapp.repo.BookRepository;
+import com.virtualbookstore.bookstoreapp.repo.CartItemRepository;
+import com.virtualbookstore.bookstoreapp.repo.OrderItemRepository;
+import com.virtualbookstore.bookstoreapp.repo.OrderRepository;
+import com.virtualbookstore.bookstoreapp.repo.UserRepository;
+
+@Service
+public class OrderService {
+	
+	private final OrderRepository orderRepository;
+	private final CartItemRepository cartItemRepository;
+	private final BookRepository bookRepository;
+	private final UserRepository userRepository;
+	private final OrderItemRepository orderItemRepository;
+	private final PaymentService paymentService;
+	
+	public OrderService(OrderRepository orderRepository, CartItemRepository cartItemRepository, BookRepository bookRepository, UserRepository userRepository, OrderItemRepository orderItemRepository, PaymentService paymentService) {
+		
+		this.orderRepository=orderRepository;
+		this.cartItemRepository=cartItemRepository;
+		this.bookRepository=bookRepository;
+		this.userRepository=userRepository;
+		this.orderItemRepository=orderItemRepository;
+		this.paymentService = paymentService;
+		
+	}
+
+	@Transactional
+	public Order createOrderFromCart(Long userId, OrderDTO orderDTO) {
+		
+		User user;
+			
+		Optional<User> optionalUser = userRepository.findById(userId);
+			
+		if(optionalUser.isPresent()) {
+				
+			user=optionalUser.get();
+				
+		} else {
+				
+			throw new RuntimeException("User not found");
+				
+		}
+			
+		List<CartItem> cartItems=cartItemRepository.findByUserId(userId);
+		List<OrderItem> orderItems=new ArrayList<>();
+		double orderPrice=0.0;
+		
+		if(cartItems.isEmpty())
+			throw new RuntimeException("Cart is Empty");
+		
+		for(CartItem cartItem: cartItems) {
+			
+			Long bookId = cartItem.getBook().getId();
+			Book book = bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book not found"));
+			int quantity = cartItem.getQuantity();
+			int stock=book.getStock();
+			double price=book.getPrice();
+			
+			if(quantity>stock) {
+				throw new RuntimeException("Insufficient stock for Book with Id: "+ book.getId());
+			}
+			
+			OrderItem orderItem = OrderItem.builder()
+				.user(user)
+				.book(book)
+				.quantity(quantity)
+				.priceAtPurchase(price)
+				.quantity(quantity)
+				.build();
+			orderItems.add(orderItem);
+			orderPrice+=price*quantity;
+			
+		}
+		
+		Order order= Order.builder()
+						.orderItem(orderItems)
+						.status(OrderStatus.Placed)
+						.totalPrice(orderPrice)
+						.user(user)
+						.build();
+		
+		Order savedOrder = orderRepository.save(order);
+		
+		for(OrderItem item: orderItems ) {
+			
+			item.setOrder(savedOrder);
+			orderItemRepository.save(item);
+			
+		}
+		
+		String method = orderDTO.getMethod();
+		String transactionId = orderDTO.getTransactionId();
+		
+		paymentService.process(savedOrder, user, orderPrice, method, transactionId);
+		
+		cartItemRepository.deleteAll(cartItems);
+		
+		return savedOrder;
+		
+	}
+
+	public List<Order> getAllOrders(Long userId) {
+		// TODO Auto-generated method stub
+		return orderRepository.findByUserId(userId);
+		
+	}
+
+	public Order getOrder(Long orderId, Long userId) {
+		
+		Order order= orderRepository.findById(orderId).orElseThrow(()->new RuntimeException("Order not found"));
+		Long orderUserId=order.getUser().getId();
+		
+		if(orderUserId!=userId)
+			throw new RuntimeException("This order dos not belong to you");
+		else {
+			
+			return order;
+			
+		}
+	}
+
+	@Transactional
+	public Order cancelOrder(Long orderId, Long userId) throws AccessDeniedException {
+		
+		Order order=orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+		Long orderUserId = order.getUser().getId();
+		
+		if(orderUserId!=userId)
+			throw new AccessDeniedException("This order does not belong to you");
+		
+		if(order.getStatus()!=OrderStatus.Processing && order.getStatus()!=OrderStatus.Placed) {
+			
+			throw new RuntimeException("Order cannot be cancelled when "+order.getStatus());
+			
+		}
+		
+		for(OrderItem orderItem: order.getOrderItem()) {
+			
+			Long bookId=orderItem.getBook().getId();
+			Book book=bookRepository.findById(bookId).orElseThrow(()-> new RuntimeException("book not found with id: "+bookId));
+			
+			book.setStock(book.getStock()+orderItem.getQuantity());
+			bookRepository.save(book);
+			
+		}
+		
+		order.setStatus(OrderStatus.Cancelled);
+		return orderRepository.save(order);
+		
+	}
+
+	@Transactional
+	public Order placeOrder(Long userId, Long bookId, Integer quantity, OrderDTO orderDTO) {
+		
+		User user = userRepository.findById(bookId).orElseThrow(()-> new RuntimeException("User not found"));
+		Book book = bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book not found"));
+		double price = book.getPrice()*quantity;
+		int stock = book.getStock();
+		
+		if(stock<quantity)
+			throw new RuntimeException("Stock is no sufficient");
+		
+		if(quantity < 1)
+			throw new IllegalArgumentException("Quantity should always be greater than 0");
+		
+		OrderItem orderItem = OrderItem.builder()
+								.book(book)
+								.priceAtPurchase(price)
+								.quantity(quantity)
+								.build();
+		
+		List<OrderItem> orderItems = new ArrayList<>();
+		orderItems.add(orderItem);
+		
+		Order order = Order.builder()
+							.orderItem(orderItems)
+							.status(OrderStatus.Placed)
+							.totalPrice(price)
+							.user(user)
+							.build();
+		Order savedOrder = orderRepository.save(order);
+		
+		for(OrderItem orderItem2: orderItems) {
+			
+			orderItem2.setOrder(order);
+			orderItemRepository.save(orderItem2);
+			
+		}
+		
+		String method = orderDTO.getMethod();
+		String transactionId = orderDTO.getTransactionId();
+		
+		paymentService.process(savedOrder, user, price, method, transactionId);
+		
+		return savedOrder;
+		
+	}
+	
+
+}

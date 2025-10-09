@@ -1,0 +1,5 @@
+package com.virtualbookstore.bookstoreapp.enums;
+
+public enum PaymentStatus {
+
+}

@@ -1,0 +1,84 @@
+package com.virtualbookstore.bookstoreapp.controllers;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.virtualbookstore.bookstoreapp.DTO.LoginDTO;
+import com.virtualbookstore.bookstoreapp.DTO.RegistrationDTO;
+import com.virtualbookstore.bookstoreapp.Entities.User;
+import com.virtualbookstore.bookstoreapp.Services.JWTService;
+import com.virtualbookstore.bookstoreapp.Services.UserDetailsServiceImpl;
+import com.virtualbookstore.bookstoreapp.Services.UserService;
+
+import jakarta.validation.Valid;
+
+@Valid
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+	
+	private final UserService userService;
+	private final AuthenticationManager authenticationManager;
+	private final UserDetailsServiceImpl userDetailsServiceImpl;
+	private final JWTService jwtService;
+	
+	public AuthController(UserService userService, AuthenticationManager authenticationManager, UserDetailsServiceImpl userDetailsServiceImpl, JWTService jwtService) {
+		
+		this.userService=userService;
+		this.authenticationManager=authenticationManager;
+		this.userDetailsServiceImpl=userDetailsServiceImpl;
+		this.jwtService = jwtService;
+		
+	}
+	
+	@PostMapping("/register")
+	public ResponseEntity<User> userRegistraion(
+			@RequestBody RegistrationDTO userDto
+			) {
+		
+		try {
+			
+			User newUser = userService.register(userDto);
+			return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+			
+		} catch (RuntimeException e) {
+			
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+		}
+		
+	}
+	
+	@PostMapping("/login")
+	public ResponseEntity<?> userLogin(
+			@RequestBody LoginDTO userDto
+			) {
+		
+		Authentication authToken = new UsernamePasswordAuthenticationToken(userDto.getEmail(), userDto.getPassword());
+		
+		try {
+			
+			Authentication authentication = authenticationManager.authenticate(authToken);
+			final UserDetails userDetails = userDetailsServiceImpl.loadUserByUsername(userDto.getEmail());
+			final String jwt = jwtService.generateToken(userDetails);
+			
+			return new ResponseEntity<>("User logged in successfully", HttpStatus.OK);
+			
+		} catch (Exception e) {
+			
+			System.out.println("Login Failed. Exception Type: " + e.getClass().getName() + " Message: " + e.getMessage());
+			return new ResponseEntity<>("User login not successful", HttpStatus.UNAUTHORIZED);
+		}
+		
+	}
+
+}

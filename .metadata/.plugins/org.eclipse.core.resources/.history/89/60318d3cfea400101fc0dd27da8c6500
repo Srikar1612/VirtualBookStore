@@ -1,0 +1,148 @@
+package com.virtualbookstore.bookstoreapp.controllers;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.virtualbookstore.bookstoreapp.Entities.CartItem;
+import com.virtualbookstore.bookstoreapp.Services.CartItemService;
+import com.virtualbookstore.bookstoreapp.Util.GetIdUtility;
+
+@RestController
+@RequestMapping("/api/users/cart")
+public class CartItemController {
+	
+	private final CartItemService cartItemService;
+	private final GetIdUtility getIdUtility;
+	
+	public CartItemController(CartItemService cartItemService, GetIdUtility getIdUtility) {
+		
+		this.cartItemService = cartItemService;
+		this.getIdUtility=getIdUtility;
+		
+	}
+	
+	@GetMapping
+	public ResponseEntity<List<CartItem>> getUserCart(){
+		
+		Long userId = getIdUtility.getCurrentUserId();
+		
+		List<CartItem> cartItems = cartItemService.getCart(userId);
+		
+		if(!cartItems.isEmpty())
+				return new ResponseEntity<>(cartItems, HttpStatus.OK);
+		
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		
+		
+	}
+	
+	@PostMapping("/add")
+	public ResponseEntity<CartItem> addToCart(
+			@RequestParam Long bookId,
+			@RequestParam(defaultValue = "1") int quantity
+			){
+		
+		try {
+			
+			Long userId = getIdUtility.getCurrentUserId();
+			CartItem addedCartItem = cartItemService.addCartItem(userId, bookId, quantity);
+			
+			return new ResponseEntity<>(addedCartItem, HttpStatus.OK);
+			
+		}catch(IllegalArgumentException e) {
+			
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+		} catch (RuntimeException re) {
+			
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			
+		}
+		
+	}
+	
+	@PutMapping("/{cartItemId}")
+	public ResponseEntity<Void> changeQuantity(
+			@PathVariable Long cartItemId,
+			@RequestBody Map<String, Integer> updatedValue			
+			){
+		
+		Integer newQuantity = updatedValue.get("quantity");
+		
+		if(newQuantity==null) {
+			
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		
+		}
+		
+		try {
+			
+			cartItemService.updateQuantity(cartItemId, newQuantity);
+			return new ResponseEntity<>(HttpStatus.OK);
+			
+		} catch (IllegalArgumentException e) {
+			
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+		} catch (RuntimeException e) {
+			
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			
+		}
+		
+	}
+	
+	@DeleteMapping("/{cartItemId}")
+	public ResponseEntity<Void> DeleteCartItem(
+			@PathVariable Long cartItemId
+			) {
+		
+		try {
+			
+			Long userId = getIdUtility.getCurrentUserId();
+			cartItemService.deleteCartItem(userId, cartItemId);
+			return new ResponseEntity<>(HttpStatus.OK);
+			
+		} catch (IllegalArgumentException e) {
+			
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+		} catch (RuntimeException e) {
+			
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			
+		}
+		
+	}
+	
+	@DeleteMapping("/clearcart")
+	public ResponseEntity<Void> DeleteAllCartItems(
+			) {
+		
+		try {
+			
+			Long userId = getIdUtility.getCurrentUserId();
+			cartItemService.clearCart(userId);
+			return new ResponseEntity<>(HttpStatus.OK);
+			
+		} catch (RuntimeException e) {
+			
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			
+		}
+		
+	}
+
+}

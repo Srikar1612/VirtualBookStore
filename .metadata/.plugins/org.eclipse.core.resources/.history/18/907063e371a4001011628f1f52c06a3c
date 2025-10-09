@@ -1,0 +1,8 @@
+package com.virtualbookstore.bookstoreapp.DTO;
+
+public class ProfileUpdateDTO {
+	
+	private String name;
+	private String email;
+
+}

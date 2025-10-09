@@ -1,0 +1,21 @@
+package com.virtualbookstore.bookstoreapp.controllers;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.virtualbookstore.bookstoreapp.Services.UserService;
+
+@RestController
+@RequestMapping("api/user")
+public class UserController {
+	
+	private final UserService userService;
+	
+	public UserController(UserService userService) {
+		
+		this.userService=userService;
+		
+	}
+	
+
+}
