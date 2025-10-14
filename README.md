@@ -30,6 +30,7 @@ It supports features like user authentication, book management, shopping cart, o
 
 ## 📁 Project Structure
 
+```bash
 VirtualBookStore/
 ├── README.md
 ├── mvnw
@@ -106,6 +107,8 @@ VirtualBookStore/
                 └── virtualbookstore
                     └── bookstoreapp
                         └── VirtualBookstoreApplicationTests.java
+
+```
 
  ---
 
