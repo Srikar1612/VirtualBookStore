@@ -31,7 +31,7 @@ It supports features like user authentication, book management, shopping cart, o
 ## 📁 Project Structure
 
 VirtualBookStore/
- ├── README.md
+├── README.md
 ├── mvnw
 ├── mvnw.cmd
 ├── pom.xml
