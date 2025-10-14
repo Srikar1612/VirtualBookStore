@@ -31,17 +31,81 @@ It supports features like user authentication, book management, shopping cart, o
 ## 📁 Project Structure
 
 VirtualBookStore/
- ├── src/main/java/com/virtualbookstore/bookstoreapp/
- │   ├── controllers/ 
- │   ├── entities/
- │   ├── dto/
- │   ├── config/
- │   ├── common/
- │   └── VirtualBookstoreApplication.java
- ├── src/main/resources/
- │   ├── application.properties
- ├── pom.xml                 
- └── HELP.md / README.md
+ ├── README.md
+├── mvnw
+├── mvnw.cmd
+├── pom.xml
+└── src
+    ├── main
+        ├── java
+        │   └── com
+        │   │   └── virtualbookstore
+        │   │       └── bookstoreapp
+        │   │           ├── DTO
+        │   │               ├── AuthenticationResponseDTO.java
+        │   │               ├── LoginDTO.java
+        │   │               ├── OrderDTO.java
+        │   │               ├── PasswordUpdateDTO.java
+        │   │               ├── ProfileUpdateDTO.java
+        │   │               ├── RegistrationDTO.java
+        │   │               ├── StockUpdateDTO.java
+        │   │               └── UpdateRoleDTO.java
+        │   │           ├── Entities
+        │   │               ├── Book.java
+        │   │               ├── CartItem.java
+        │   │               ├── Order.java
+        │   │               ├── OrderItem.java
+        │   │               ├── Payment.java
+        │   │               ├── Review.java
+        │   │               └── User.java
+        │   │           ├── Services
+        │   │               ├── BookService.java
+        │   │               ├── CartItemService.java
+        │   │               ├── JWTService.java
+        │   │               ├── OrderService.java
+        │   │               ├── PaymentService.java
+        │   │               ├── ReviewService.java
+        │   │               ├── UserDetailsServiceImpl.java
+        │   │               └── UserService.java
+        │   │           ├── Util
+        │   │               └── GetIdUtility.java
+        │   │           ├── VirtualBookstoreApplication.java
+        │   │           ├── common
+        │   │               └── Auditable.java
+        │   │           ├── config
+        │   │               └── SecurityConfig.java
+        │   │           ├── controllers
+        │   │               ├── AuthController.java
+        │   │               ├── BookController.java
+        │   │               ├── CartItemController.java
+        │   │               ├── OrderController.java
+        │   │               ├── ReviewController.java
+        │   │               └── UserController.java
+        │   │           ├── enums
+        │   │               ├── OrderStatus.java
+        │   │               ├── PaymentStatus.java
+        │   │               └── Role.java
+        │   │           ├── repo
+        │   │               ├── BookRepository.java
+        │   │               ├── CartItemRepository.java
+        │   │               ├── OrderItemRepository.java
+        │   │               ├── OrderRepository.java
+        │   │               ├── PaymentRepository.java
+        │   │               ├── ReviewRepository.java
+        │   │               └── UserRepository.java
+        │   │           └── security
+        │   │               ├── JwtAuthFilter.java
+        │   │               └── JwtEntryPoint.java
+        └── resources
+        │   ├── META-INF
+        │       └── additional-spring-configuration-metadata.json
+        │   └── application.properties
+    └── test
+        └── java
+            └── com
+                └── virtualbookstore
+                    └── bookstoreapp
+                        └── VirtualBookstoreApplicationTests.java
 
  ---
 
