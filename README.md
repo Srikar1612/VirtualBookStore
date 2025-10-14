@@ -32,12 +32,12 @@ It supports features like user authentication, book management, shopping cart, o
 
 VirtualBookStore/
  ├── src/main/java/com/virtualbookstore/bookstoreapp/
- │   ├── controllers/        
- │   ├── entities/           
- │   ├── dto/              
- │   ├── config/            
- │   ├── common/            
- │   └── VirtualBookstoreApplication.java 
+ │   ├── controllers/ 
+ │   ├── entities/
+ │   ├── dto/
+ │   ├── config/
+ │   ├── common/
+ │   └── VirtualBookstoreApplication.java
  ├── src/main/resources/
  │   ├── application.properties
  ├── pom.xml                 
