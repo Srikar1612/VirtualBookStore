@@ -179,3 +179,6 @@ JWT-based authentication with Spring Security:
 - Integrate with cloud database (AWS RDS / Firebase)
 
 ---
+
+## License
+This project is licensed under GPL v3 [License](./LICENSE).
