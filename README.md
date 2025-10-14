@@ -108,7 +108,6 @@ JWT-based authentication with Spring Security:
 ## 🧠 Future Enhancements
 
 - Add payment gateway integration
-- Include book search and filtering
 - Implement admin dashboard for analytics
 - Integrate with cloud database (AWS RDS / Firebase)
 
