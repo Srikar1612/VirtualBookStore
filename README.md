@@ -21,7 +21,7 @@ It supports features like user authentication, book management, shopping cart, o
 
 - **Backend**:	Java 17, Spring Boot
 - **Security**:	Spring Security, JWT
-- **Database**:	MySQL / H2 (configurable)
+- **Database**:	MySQL
 - **Build Tool**:	Maven
 - **API Design**:	REST
 - **Version Control**:	Git
