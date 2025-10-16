@@ -8,7 +8,7 @@ It supports features like user authentication, book management, shopping cart, o
 ## 🚀 Features
 
 - **User Authentication** (Login, Registration, Password Update)
-- **Book Management** (Add, update, delete, view books)
+- **Book Management** (Add, update, delete, view, search, filter and sortbooks)
 - **Shopping Cart** functionality
 - **Order Placement & Tracking**
 - **User Reviews & Ratings**
